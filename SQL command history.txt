@@ -1,0 +1,102 @@
+CREATE TABLE stock_histories (
+    Date DATE,
+    Open REAL DEFAULT NULL,
+    High REAL DEFAULT NULL,
+    Low REAL DEFAULT NULL,
+    Close REAL DEFAULT NULL,
+    Adj Close REAL DEFAULT NULL,
+    Volume BIGINT DEFAULT NULL,
+    Ticker VARCHAR DEFAULT NULL
+);
+
+SELECT * FROM stock_histories WHERE Volume IS NULL LIMIT 100;
+
+DELETE FROM stock_histories WHERE Volume IS NULL;
+
+SELECT * FROM stock_histories WHERE Volume IS NULL;
+
+SELECT * FROM stock_histories WHERE Date > '2002-01-01' LIMIT 100;
+
+CREATE TABLE stocks_after_2002 AS SELECT * FROM stock_histories WHERE Date > '2002-01-01';
+
+SELECT DISTINCT Ticker FROM stocks_after_2002;
+
+CREATE TABLE stock_2002_histories (
+    Date DATE,
+    Close REAL DEFAULT NULL,
+    Ticker VARCHAR DEFAULT NULL
+);
+
+INSERT INTO stock_2002_histories(Date, Close, Ticker)
+SELECT Date, Close, Ticker
+FROM stocks_after_2002;
+
+SELECT DISTINCT Ticker
+FROM stock_2002_histories
+WHERE Date >= '2008-10-01';
+
+INSERT INTO stocks_2002(Date, Close, Ticker)
+SELECT Date, Close, Ticker
+FROM stock_histories WHERE Date >= '2002-01-01';
+
+SELECT DISTINCT Ticker
+FROM stocks_2002;
+
+SELECT DISTINCT Ticker
+FROM stocks_2002
+WHERE Date = '2002-01-01';
+
+SELECT *
+FROM stocks_2002
+WHERE Ticker IN (
+    SELECT DISTINCT Ticker
+    FROM stocks_2002
+    WHERE Date = '2002-01-01');
+
+SELECT Ticker, MAX(Close)
+FROM stocks_2002
+GROUP BY Ticker;
+
+SELECT Ticker, MAX(Close)
+FROM stocks_2002
+WHERE Ticker IN (
+    SELECT DISTINCT Ticker
+    FROM stocks_2002
+    WHERE Date = '2002-01-01')
+GROUP BY Ticker;
+
+CREATE TABLE stocks_minmax (
+    Date DATE,
+    Ticker VARCHAR DEFAULT NULL,
+    price_2002 REAL DEFAULT NULL,
+    price_2007 REAL DEFAULT NULL,
+    price_2012 REAL DEFAULT NULL,
+    price_2017 REAL DEFAULT NULL,
+    price_2022 REAL DEFAULT NULL
+);
+
+INSERT INTO stocks_minmax(Date, Ticker, price_2002)
+SELECT Date, Ticker, Close
+FROM stocks_2002
+WHERE Ticker IN (
+    SELECT DISTINCT Ticker
+    FROM stocks_2002
+    WHERE Date = '2002-01-01')
+    AND Date = '2002-01-01'
+GROUP BY Ticker;
+
+CREATE TABLE stocks_minmax_2022 (
+    Date DATE,
+    Ticker VARCHAR DEFAULT NULL,
+    price_2022 REAL DEFAULT NULL
+);
+
+INSERT INTO stocks_minmax_2022(Date, Ticker, price_2022)
+SELECT Date, Ticker, Close
+FROM stocks_2002
+WHERE Ticker IN (
+    SELECT DISTINCT Ticker
+    FROM stocks_2002
+    WHERE Date = '2002-01-01')
+    AND Date = '2022-01-01'
+GROUP BY Ticker;
